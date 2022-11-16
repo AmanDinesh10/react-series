@@ -1,12 +1,26 @@
 import React, { useContext } from "react";
 import { useParams, Link } from "react-router-dom";
 import DataContext from "./context/DataContext";
+import api from "./api/posts";
+import { useHistory } from "react-router-dom";
 
 const PostPage = () => {
-  const { posts, handleDelete } = useContext(DataContext)
+  const { posts, setPosts } = useContext(DataContext);
 
   const { id } = useParams();
   const post = posts.find((post) => post.id.toString() === id);
+  const history = useHistory();
+
+  const handleDelete = async (id) => {
+    try {
+      await api.delete(`/posts/${id}`);
+      const postsList = posts.filter((post) => post.id != id);
+      setPosts(postsList);
+      history.push("/");
+    } catch (err) {
+      console.log(`Error: ${err.message}`);
+    }
+  };
 
   return (
     <main className="PostPage">
@@ -17,11 +31,14 @@ const PostPage = () => {
             <p className="postDate">{post.datetime}</p>
             <p className="postBody">{post.body}</p>
             <Link to={`/edit/${post.id}`}>
-              <button className="editButton">
-                Edit Post
-              </button>
+              <button className="editButton">Edit Post</button>
             </Link>
-            <button className="deleteButton" onClick={() => handleDelete(post.id)}>Delete Post</button>
+            <button
+              className="deleteButton"
+              onClick={() => handleDelete(post.id)}
+            >
+              Delete Post
+            </button>
           </>
         )}
         {!post && (
